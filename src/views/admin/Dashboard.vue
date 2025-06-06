@@ -211,7 +211,7 @@ onMounted(async () => {
 
         <!-- Status Distribution Chart -->
         <div class="col-span-4 bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-            <h3 class="text-lg font-semibold text-gray-800 mb-4">Distribusi Status</h3>
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Distribusi Status Bulan Ini</h3>
             <canvas id="statusChart" height="300"></canvas>
         </div>
     </div>

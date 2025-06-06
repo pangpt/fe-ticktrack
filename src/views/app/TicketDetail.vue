@@ -1,12 +1,21 @@
 <script setup>
 // TODO: Import necessary dependencies
 // Hint: You'll need to import from vue, pinia, lodash, feather-icons, luxon, and vue-router
-
+import { ref, onMounted } from 'vue';
+import { useTicketStore } from '@/stores/ticket';
+import { storeToRefs } from 'pinia';
+import { useRoute } from 'vue-router';
+import { capitalize } from 'lodash';
+import { DateTime } from 'luxon';
+import feather from 'feather-icons';
 // TODO: Initialize ticket store and get necessary refs
 // Hint: Use useTicketStore() and storeToRefs()
-
+const ticketStore = useTicketStore();
+const { success, error, loading } = storeToRefs(ticketStore);
+const { fetchTicket, createTicketReply } = ticketStore;
 // TODO: Create route instance
 // Hint: Use useRoute()
+const route = useRoute();
 
 // TODO: Create refs for ticket and form
 // Hint: You'll need ticket object and form with content field
@@ -23,6 +32,10 @@ const form = ref({
 // Hint: This should call fetchTicket with route code param
 const fetchTicketDetail = async () => {
     // Your code here
+    const response = await fetchTicket(route.params.code);
+
+    ticket.value = response
+    form.value.status = response.status;
 }
 
 // TODO: Implement handleSubmit function
@@ -30,12 +43,20 @@ const fetchTicketDetail = async () => {
 // Then refetch ticket details
 const handleSubmit = async () => {
     // Your code here
+    await createTicketReply(route.params.code, form.value);
+
+    error.value = null; // Reset error
+    form.value.content = ''; // Clear form content
+
+    await fetchTicketDetail();
 }
 
 // TODO: Implement onMounted hook
 // Hint: Fetch initial ticket details and initialize feather icons
 onMounted(async () => {
     // Your code here
+    await fetchTicketDetail();
+    feather.replace();
 })
 </script>
 
@@ -108,9 +129,9 @@ onMounted(async () => {
                         class="w-full px-4 py-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                         :class="{ 'border-red-500 ring-red-500': error?.content }" rows="4"
                         placeholder="Tulis balasan Anda di sini..." minlength="10"></textarea>
-                    <p class="mt-1 text-xs text-red-500" v-if="error?.content">
-                        {{ error?.content?.join(', ') }}
-                    </p>
+                        <p v-if="error?.content" class="mt-1 text-xs text-red-500">
+                            {{ error?.content?.join(', ') }}
+                        </p>
                 </div>
                 <div class="flex items-center justify-between">
                     <div class="flex items-center space-x-4">
@@ -122,7 +143,12 @@ onMounted(async () => {
                     </div>
                     <button class="px-6 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700">
                         <i data-feather="send" class="w-4 h-4 inline-block mr-2"></i>
-                        Kirim Balasan
+                        <span v-if="!loading">
+                            Kirim Balasan
+                        </span>
+                        <span v-else>
+                            Loading...
+                        </span>
                     </button>
                 </div>
             </form>
